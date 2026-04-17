@@ -1,10 +1,21 @@
 // src/pages/Landing.jsx
 import { useNavigate } from 'react-router-dom';
 import { useRole } from '../context/RoleContext';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Grid, 
+  Card, 
+  CardContent, 
+  alpha, 
+  useTheme 
+} from '@mui/material';
 
 const Landing = () => {
   const navigate = useNavigate();
   const { setRole } = useRole();
+  const theme = useTheme();
 
   const handleRoleSelect = (role) => {
     setRole(role);
@@ -13,48 +24,102 @@ const Landing = () => {
     if (role === 'catering') navigate('/catering');
   };
 
+  const roles = [
+    {
+      id: 'attendee',
+      title: 'Attendee Portal',
+      description: 'Scan QR at your seat and order food instantly. Enjoy the game without the queues.',
+      icon: '👤',
+      color: '#10b981',
+    },
+    {
+      id: 'admin',
+      title: 'Admin Portal',
+      description: 'Manage QR codes, pickup stands, and update the menu items in real-time.',
+      icon: '⚙️',
+      color: '#3b82f6',
+    },
+    {
+      id: 'catering',
+      title: 'Catering Portal',
+      description: 'Receive and manage orders efficiently. Keep attendees updated on their order status.',
+      icon: '🍔',
+      color: '#f59e0b',
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 to-black flex items-center justify-center p-6">
-      <div className="max-w-4xl mx-auto text-center">
-        <h1 className="text-6xl font-bold text-white mb-4">Venue-Flow</h1>
-        <p className="text-xl text-green-300 mb-12">
-          Order food from your seat. Skip the queues. Enjoy the game.
-        </p>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Attendee Card */}
-          <div 
-            onClick={() => handleRoleSelect('attendee')}
-            className="bg-zinc-900 border border-green-500 hover:border-green-400 p-8 rounded-2xl cursor-pointer transition-all hover:scale-105"
+    <Box 
+      sx={{ 
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        background: theme.palette.mode === 'dark'
+          ? `radial-gradient(circle at 20% 20%, ${alpha(theme.palette.primary.main, 0.15)} 0%, transparent 40%), radial-gradient(circle at 80% 80%, ${alpha(theme.palette.secondary.main, 0.1)} 0%, transparent 40%)`
+          : `radial-gradient(circle at 20% 20%, ${alpha(theme.palette.primary.main, 0.05)} 0%, transparent 40%)`,
+        py: 8
+      }}
+    >
+      <Container maxWidth="lg">
+        <Box sx={{ textAlign: 'center', mb: 8 }}>
+          <Typography 
+            variant="h1" 
+            sx={{ 
+              fontSize: { xs: '3.5rem', md: '5rem' },
+              mb: 2,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
           >
-            <div className="text-5xl mb-6">👤</div>
-            <h2 className="text-2xl font-semibold text-white mb-3">Attendee Portal</h2>
-            <p className="text-zinc-400">Scan QR at your seat and order food instantly</p>
-          </div>
-
-          {/* Admin Card */}
-          <div 
-            onClick={() => handleRoleSelect('admin')}
-            className="bg-zinc-900 border border-blue-500 hover:border-blue-400 p-8 rounded-2xl cursor-pointer transition-all hover:scale-105"
+            Venue-Flow
+          </Typography>
+          <Typography 
+            variant="h5" 
+            color="text.secondary" 
+            sx={{ maxWidth: '600px', mx: 'auto', fontWeight: 400 }}
           >
-            <div className="text-5xl mb-6">⚙️</div>
-            <h2 className="text-2xl font-semibold text-white mb-3">Admin Portal</h2>
-            <p className="text-zinc-400">Manage QR codes, stands &amp; menu</p>
-          </div>
+            Order food from your seat. Skip the queues. Enjoy the game.
+          </Typography>
+        </Box>
 
-          {/* Catering Card */}
-          <div 
-            onClick={() => handleRoleSelect('catering')}
-            className="bg-zinc-900 border border-orange-500 hover:border-orange-400 p-8 rounded-2xl cursor-pointer transition-all hover:scale-105"
-          >
-            <div className="text-5xl mb-6">🍔</div>
-            <h2 className="text-2xl font-semibold text-white mb-3">Catering Portal</h2>
-            <p className="text-zinc-400">Manage orders and update status</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Grid container spacing={4} justifyContent="center">
+          {roles.map((role) => (
+            <Grid item xs={12} sm={6} md={4} key={role.id}>
+              <Card 
+                onClick={() => handleRoleSelect(role.id)}
+                sx={{ 
+                  height: '100%',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  border: `1px solid ${alpha(role.color, 0.1)}`,
+                  background: alpha(theme.palette.background.paper, 0.8),
+                  backdropFilter: 'blur(8px)',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: `0 20px 40px ${alpha(role.color, 0.15)}`,
+                    borderColor: role.color,
+                  }
+                }}
+              >
+                <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                  <Typography variant="h2" sx={{ fontSize: '4rem', mb: 3 }}>
+                    {role.icon}
+                  </Typography>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+                    {role.title}
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    {role.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 
-export default Landing;
+export default Landing;

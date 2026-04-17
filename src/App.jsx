@@ -12,30 +12,34 @@ import AdminMenu from './pages/AdminMenu';
 import CateringDashboard from './pages/CateringDashboard';
 import CateringOrders from './pages/CateringOrders';
 
+import { ColorModeProvider } from './context/ThemeContext';
+
 function App() {
   return (
-    <RoleProvider>
-      <Router>
-        <Routes>
-          {/* Public Landing */}
-          <Route path="/" element={<Landing />} />
+    <ColorModeProvider>
+      <RoleProvider>
+        <Router>
+          <Routes>
+            {/* Public Landing */}
+            <Route path="/" element={<Landing />} />
 
-          {/* Attendee Routes */}
-          <Route path="/attendee/order" element={<Layout><AttendeeOrder /></Layout>} />
-          <Route path="/attendee/status" element={<Layout><AttendeeStatus /></Layout>} />
+            {/* Attendee Routes */}
+            <Route path="/attendee/order" element={<Layout><AttendeeOrder /></Layout>} />
+            <Route path="/attendee/status" element={<Layout><AttendeeStatus /></Layout>} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
-          <Route path="/admin/qr-generator" element={<Layout><AdminQRGenerator /></Layout>} />
-          <Route path="/admin/stands" element={<Layout><AdminStands /></Layout>} />
-          <Route path="/admin/menu" element={<Layout><AdminMenu /></Layout>} />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
+            <Route path="/admin/qr-generator" element={<Layout><AdminQRGenerator /></Layout>} />
+            <Route path="/admin/stands" element={<Layout><AdminStands /></Layout>} />
+            <Route path="/admin/menu" element={<Layout><AdminMenu /></Layout>} />
 
-          {/* Catering Routes */}
-          <Route path="/catering" element={<Layout><CateringDashboard /></Layout>} />
-          <Route path="/catering/orders" element={<Layout><CateringOrders /></Layout>} />
-        </Routes>
-      </Router>
-    </RoleProvider>
+            {/* Catering Routes */}
+            <Route path="/catering" element={<Layout><CateringDashboard /></Layout>} />
+            <Route path="/catering/orders" element={<Layout><CateringOrders /></Layout>} />
+          </Routes>
+        </Router>
+      </RoleProvider>
+    </ColorModeProvider>
   );
 }
 

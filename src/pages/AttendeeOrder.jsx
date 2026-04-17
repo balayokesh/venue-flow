@@ -1,26 +1,46 @@
 // src/pages/AttendeeOrder.jsx
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useRole } from '../context/RoleContext';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Grid, 
+  Card, 
+  CardMedia, 
+  CardContent, 
+  Button, 
+  IconButton, 
+  Badge, 
+  Drawer, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  Divider, 
+  Fab,
+  useTheme,
+  alpha,
+  Stack
+} from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import CloseIcon from '@mui/icons-material/Close';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { menuData } from '../data/menu';
-import { concessionStands } from '../data/stands';
 
 const AttendeeOrder = () => {
   const [searchParams] = useSearchParams();
-  const { currentRole } = useRole();
+  const navigate = useNavigate();
+  const theme = useTheme();
 
   const [seat, setSeat] = useState('');
   const [cart, setCart] = useState([]);
-  const [selectedStand, setSelectedStand] = useState(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // Get seat number from URL (e.g., ?seat=C-12-45)
   useEffect(() => {
     const seatParam = searchParams.get('seat');
-    if (seatParam) {
-      setSeat(seatParam);
-    } else {
-      setSeat('Section-C-Row-12-Seat-45'); // Demo fallback
-    }
+    setSeat(seatParam || 'Section C, Row 12, Seat 45');
   }, [searchParams]);
 
   const addToCart = (item) => {
@@ -34,119 +54,189 @@ const AttendeeOrder = () => {
   const totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
 
   const handlePlaceOrder = () => {
-    if (cart.length === 0) {
-      alert("Your cart is empty!");
-      return;
-    }
-    alert(`✅ Order placed successfully!\nSeat: ${seat}\nItems: ${cart.length}\nTotal: ₹${totalAmount}\n\nYou can now go to /catering/orders to mark it as Ready.`);
+    if (cart.length === 0) return;
     
-    // In real app, this would send order to backend
-    console.log("Order placed:", { seat, cart, total: totalAmount });
+    // In a real app, we'd send the order to the backend here
+    setCart([]);
+    setIsCartOpen(false);
+    navigate(`/attendee/status?seat=${encodeURIComponent(seat)}`);
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Seat Header */}
-        <div className="bg-zinc-900 border border-green-600 rounded-2xl p-6 mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-green-400 text-sm">You are seated at</p>
-              <h1 className="text-3xl font-bold">Seat: <span className="text-green-400">{seat}</span></h1>
-            </div>
-            <div className="text-right">
-              <p className="text-zinc-400">Welcome to Venue-Flow</p>
-              <p className="text-sm text-green-500">Express Pickup Only</p>
-            </div>
-          </div>
-        </div>
+    <Box sx={{ pb: 10 }}>
+      {/* Hero / Seat Info */}
+      <Box 
+        sx={{ 
+          bgcolor: alpha(theme.palette.primary.main, 0.1),
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          py: 4, 
+          mb: 4
+        }}
+      >
+        <Container maxWidth="md">
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box 
+              sx={{ 
+                bgcolor: theme.palette.primary.main, 
+                color: 'white', 
+                borderRadius: 2, 
+                p: 1.5,
+                display: 'flex'
+              }}
+            >
+              <LocationOnIcon />
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+                Your Location
+              </Typography>
+              <Typography variant="h5" fontWeight={800} color="primary">
+                {seat}
+              </Typography>
+            </Box>
+          </Stack>
+        </Container>
+      </Box>
 
-        <div className="grid lg:grid-cols-12 gap-8">
-          {/* Menu Section */}
-          <div className="lg:col-span-8">
-            <h2 className="text-2xl font-semibold mb-6">Menu</h2>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              {menuData.map((item) => (
-                <div key={item.id} className="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-700 hover:border-green-500 transition-all">
-                  <img 
-                    src={item.image || `https://picsum.photos/id/${item.id + 100}/400/200`} 
-                    alt={item.name}
-                    className="w-full h-48 object-cover"
+      <Container maxWidth="md">
+        <Typography variant="h4" fontWeight={800} sx={{ mb: 4 }}>
+          Menu
+        </Typography>
+
+        <Grid container spacing={3}>
+          {menuData.map((item) => (
+            <Grid item xs={12} sm={6} key={item.id}>
+              <Card 
+                elevation={0}
+                sx={{ 
+                  borderRadius: 4, 
+                  border: `1px solid ${theme.palette.divider}`,
+                  overflow: 'hidden',
+                  transition: 'transform 0.2s',
+                  '&:hover': { transform: 'translateY(-4px)' }
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  height="160"
+                  image={item.image || `https://picsum.photos/id/${item.id + 100}/400/200`}
+                  alt={item.name}
+                />
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="h6" fontWeight={700}>
+                      {item.name}
+                    </Typography>
+                    <Typography variant="h6" color="primary" fontWeight={800}>
+                      ₹{item.price}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    {item.description}
+                  </Typography>
+                  <Button 
+                    fullWidth 
+                    variant="contained" 
+                    startIcon={<AddIcon />}
+                    onClick={() => addToCart(item)}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    Add to Cart
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+      {/* Floating Cart Button (Mobile) */}
+      <Fab 
+        color="primary" 
+        aria-label="cart"
+        onClick={() => setIsCartOpen(true)}
+        sx={{ 
+          position: 'fixed', 
+          bottom: 24, 
+          right: 24,
+          boxShadow: `0 8px 32px ${alpha(theme.palette.primary.main, 0.4)}`
+        }}
+      >
+        <Badge badgeContent={cart.length} color="error">
+          <ShoppingCartIcon />
+        </Badge>
+      </Fab>
+
+      {/* Cart Drawer */}
+      <Drawer
+        anchor="right"
+        open={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        PaperProps={{
+          sx: { width: { xs: '100%', sm: 400 }, p: 3 }
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Typography variant="h5" fontWeight={800}>Your Cart</Typography>
+          <IconButton onClick={() => setIsCartOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        {cart.length === 0 ? (
+          <Box sx={{ textAlign: 'center', py: 10 }}>
+            <ShoppingCartIcon sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
+            <Typography color="text.secondary">Your cart is empty</Typography>
+          </Box>
+        ) : (
+          <>
+            <List sx={{ flex: 1, overflowY: 'auto' }}>
+              {cart.map((item) => (
+                <ListItem 
+                  key={item.cartId}
+                  secondaryAction={
+                    <IconButton edge="end" aria-label="delete" onClick={() => removeFromCart(item.cartId)}>
+                      <DeleteOutlinedIcon color="error" />
+                    </IconButton>
+                  }
+                  sx={{ 
+                    bgcolor: alpha(theme.palette.divider, 0.05),
+                    borderRadius: 2,
+                    mb: 2
+                  }}
+                >
+                  <ListItemText 
+                    primary={item.name} 
+                    secondary={`₹${item.price}`}
+                    primaryTypographyProps={{ fontWeight: 700 }}
                   />
-                  <div className="p-5">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">{item.name}</h3>
-                        <p className="text-zinc-400 text-sm">{item.description}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-green-400 font-bold text-xl">₹{item.price}</p>
-                      </div>
-                    </div>
-                    
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="mt-4 w-full bg-green-600 hover:bg-green-500 py-3 rounded-lg font-medium transition-colors"
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
+                </ListItem>
               ))}
-            </div>
-          </div>
-
-          {/* Cart Sidebar */}
-          <div className="lg:col-span-4">
-            <div className="bg-zinc-900 rounded-2xl p-6 sticky top-6">
-              <h2 className="text-2xl font-semibold mb-6">Your Cart ({cart.length})</h2>
-
-              {cart.length === 0 ? (
-                <p className="text-zinc-400 py-8 text-center">Your cart is empty.<br />Add items from the menu.</p>
-              ) : (
-                <>
-                  <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto">
-                    {cart.map((item) => (
-                      <div key={item.cartId} className="flex justify-between items-center bg-zinc-800 p-4 rounded-lg">
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-green-400">₹{item.price}</p>
-                        </div>
-                        <button
-                          onClick={() => removeFromCart(item.cartId)}
-                          className="text-red-500 hover:text-red-400 text-xl"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="border-t border-zinc-700 pt-6">
-                    <div className="flex justify-between text-lg mb-6">
-                      <span>Total</span>
-                      <span className="font-bold">₹{totalAmount}</span>
-                    </div>
-
-                    <button
-                      onClick={handlePlaceOrder}
-                      className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-xl font-semibold text-lg transition-colors"
-                    >
-                      Place Order - Express Pickup
-                    </button>
-
-                    <p className="text-center text-zinc-500 text-sm mt-4">
-                      Order will be ready at nearest Express Pickup counter
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </List>
+            
+            <Box sx={{ mt: 'auto', pt: 4 }}>
+              <Divider sx={{ mb: 3 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+                <Typography variant="h6">Total</Typography>
+                <Typography variant="h6" fontWeight={800}>₹{totalAmount}</Typography>
+              </Box>
+              <Button 
+                variant="contained" 
+                fullWidth 
+                size="large"
+                onClick={handlePlaceOrder}
+                sx={{ py: 2, borderRadius: 3, fontWeight: 800 }}
+              >
+                Place Order
+              </Button>
+              <Typography variant="caption" color="text.secondary" align="center" display="block" sx={{ mt: 2 }}>
+                Available at nearest Express Pickup counter
+              </Typography>
+            </Box>
+          </>
+        )}
+      </Drawer>
+    </Box>
   );
 };
 

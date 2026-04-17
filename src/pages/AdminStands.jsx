@@ -1,8 +1,32 @@
 // src/pages/AdminStands.jsx
 import { useState } from 'react';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Grid, 
+  Paper, 
+  TextField, 
+  Button, 
+  IconButton, 
+  Card, 
+  CardContent, 
+  Stack,
+  Chip,
+  Divider,
+  alpha,
+  useTheme
+} from '@mui/material';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import StoreIcon from '@mui/icons-material/Store';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { concessionStands } from '../data/stands';
 
 const AdminStands = () => {
+  const theme = useTheme();
   const [stands, setStands] = useState(concessionStands);
   const [newStand, setNewStand] = useState({
     name: '',
@@ -25,13 +49,10 @@ const AdminStands = () => {
 
     setStands([...stands, standToAdd]);
     setNewStand({ name: '', location: '', estimatedTime: 10 });
-    alert("New Express Pickup Stand added successfully!");
   };
 
   const deleteStand = (id) => {
-    if (window.confirm("Are you sure you want to delete this stand?")) {
-      setStands(stands.filter(stand => stand.id !== id));
-    }
+    setStands(stands.filter(stand => stand.id !== id));
   };
 
   const startEditing = (stand) => {
@@ -41,6 +62,7 @@ const AdminStands = () => {
       location: stand.location,
       estimatedTime: stand.estimatedTime
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const saveEdit = () => {
@@ -54,127 +76,187 @@ const AdminStands = () => {
 
     setEditingStand(null);
     setNewStand({ name: '', location: '', estimatedTime: 10 });
-    alert("Stand updated successfully!");
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2">Manage Express Pickup Stands</h1>
-        <p className="text-zinc-400 mb-10">Add, edit or remove dedicated pickup counters for mobile orders</p>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h4" fontWeight={800} gutterBottom>Manage Express Pickup Stands</Typography>
+        <Typography color="text.secondary">Add, edit or remove dedicated pickup counters for mobile orders</Typography>
+      </Box>
 
-        {/* Add / Edit Form */}
-        <div className="bg-zinc-900 rounded-3xl p-8 mb-12">
-          <h2 className="text-2xl font-semibold mb-6">
+      {/* Add / Edit Form */}
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: 4, 
+          mb: 8, 
+          borderRadius: 6, 
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: alpha(theme.palette.background.paper, 0.6)
+        }}
+      >
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+          <Box sx={{ p: 1, bgcolor: 'primary.main', borderRadius: 2, color: 'primary.contrastText' }}>
+            {editingStand ? <EditIcon /> : <AddIcon />}
+          </Box>
+          <Typography variant="h5" fontWeight={700}>
             {editingStand ? "Edit Pickup Stand" : "Add New Pickup Stand"}
-          </h2>
+          </Typography>
+        </Stack>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <label className="block text-sm text-zinc-400 mb-2">Stand Name</label>
-              <input
-                type="text"
-                value={newStand.name}
-                onChange={(e) => setNewStand({ ...newStand, name: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3"
-                placeholder="e.g. Gate A Grill"
-              />
-            </div>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <TextField
+              fullWidth
+              label="Stand Name"
+              value={newStand.name}
+              onChange={(e) => setNewStand({ ...newStand, name: e.target.value })}
+              placeholder="e.g. Gate A Grill"
+              variant="outlined"
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Wait Time (min)"
+              type="number"
+              value={newStand.estimatedTime}
+              onChange={(e) => setNewStand({ ...newStand, estimatedTime: e.target.value })}
+              variant="outlined"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Location / Description"
+              value={newStand.location}
+              onChange={(e) => setNewStand({ ...newStand, location: e.target.value })}
+              placeholder="e.g. Near Section C Entrance"
+              variant="outlined"
+            />
+          </Grid>
+        </Grid>
 
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Estimated Wait Time (minutes)</label>
-              <input
-                type="number"
-                value={newStand.estimatedTime}
-                onChange={(e) => setNewStand({ ...newStand, estimatedTime: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3"
-              />
-            </div>
-
-            <div className="md:col-span-3">
-              <label className="block text-sm text-zinc-400 mb-2">Location / Description</label>
-              <input
-                type="text"
-                value={newStand.location}
-                onChange={(e) => setNewStand({ ...newStand, location: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3"
-                placeholder="e.g. Near Section C Entrance"
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-4 mt-8">
-            {editingStand ? (
-              <>
-                <button
-                  onClick={saveEdit}
-                  className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-semibold"
-                >
-                  Save Changes
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingStand(null);
-                    setNewStand({ name: '', location: '', estimatedTime: 10 });
-                  }}
-                  className="flex-1 bg-zinc-700 hover:bg-zinc-600 py-4 rounded-2xl font-semibold"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={addNewStand}
-                className="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-semibold text-lg"
+        <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+          {editingStand ? (
+            <>
+              <Button 
+                variant="contained" 
+                size="large" 
+                fullWidth 
+                onClick={saveEdit}
+                sx={{ borderRadius: 3, fontWeight: 700, py: 1.5 }}
               >
-                Add New Stand
-              </button>
-            )}
-          </div>
-        </div>
+                Save Changes
+              </Button>
+              <Button 
+                variant="outlined" 
+                size="large" 
+                fullWidth 
+                onClick={() => {
+                  setEditingStand(null);
+                  setNewStand({ name: '', location: '', estimatedTime: 10 });
+                }}
+                sx={{ borderRadius: 3, fontWeight: 700, py: 1.5 }}
+              >
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button 
+              variant="contained" 
+              size="large" 
+              fullWidth 
+              startIcon={<AddIcon />}
+              onClick={addNewStand}
+              sx={{ borderRadius: 3, fontWeight: 700, py: 1.5 }}
+            >
+              Add New Stand
+            </Button>
+          )}
+        </Box>
+      </Paper>
 
-        {/* Current Stands List */}
-        <h2 className="text-2xl font-semibold mb-6">Current Express Pickup Stands ({stands.length})</h2>
+      {/* Current Stands List */}
+      <h2 className="text-2xl font-semibold mb-6">Current Express Pickup Stands ({stands.length})</h2>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {stands.map((stand) => (
-            <div key={stand.id} className="bg-zinc-900 rounded-3xl p-8 border border-zinc-700 hover:border-green-500 transition-all">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-2xl font-semibold mb-1">{stand.name}</h3>
-                  <p className="text-green-400 font-mono text-lg">{stand.estimatedTime} min average wait</p>
-                </div>
-                <span className="px-4 py-1.5 bg-green-900 text-green-400 text-xs rounded-full font-medium">
-                  Active
-                </span>
-              </div>
+      <Grid container spacing={3}>
+        {stands.map((stand) => (
+          <Grid item xs={12} md={6} key={stand.id}>
+            <Card 
+              elevation={0} 
+              sx={{ 
+                borderRadius: 6, 
+                border: `1px solid ${theme.palette.divider}`,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  borderColor: theme.palette.success.main,
+                  transform: 'translateY(-4px)',
+                  boxShadow: `0 8px 16px ${alpha(theme.palette.success.main, 0.1)}`
+                }
+              }}
+            >
+              <CardContent sx={{ p: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                  <Box>
+                    <Typography variant="h5" fontWeight={800} gutterBottom>{stand.name}</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <AccessTimeIcon sx={{ fontSize: '1rem', color: 'success.main' }} />
+                      <Typography variant="body1" color="success.main" fontWeight={700}>
+                        {stand.estimatedTime} min average wait
+                      </Typography>
+                    </Stack>
+                  </Box>
+                  <Chip label="Active" color="success" size="small" sx={{ fontWeight: 800 }} />
+                </Box>
 
-              <p className="text-zinc-400 mt-4">{stand.location}</p>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 4 }}>
+                  <LocationOnIcon sx={{ fontSize: '1rem', color: 'text.disabled' }} />
+                  <Typography color="text.secondary">{stand.location}</Typography>
+                </Stack>
 
-              <div className="flex gap-4 mt-8">
-                <button
-                  onClick={() => startEditing(stand)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-2xl font-medium"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteStand(stand.id)}
-                  className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-2xl font-medium"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+                <Divider sx={{ mb: 4 }} />
 
-        {stands.length === 0 && (
-          <p className="text-center text-zinc-500 py-12">No stands available. Add your first Express Pickup stand above.</p>
-        )}
-      </div>
-    </div>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button 
+                    fullWidth 
+                    variant="soft" 
+                    startIcon={<EditIcon />} 
+                    onClick={() => startEditing(stand)}
+                    sx={{ 
+                      borderRadius: 3, 
+                      bgcolor: alpha(theme.palette.primary.main, 0.1),
+                      color: 'primary.main',
+                      fontWeight: 700,
+                      '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="soft" 
+                    color="error" 
+                    onClick={() => deleteStand(stand.id)}
+                    sx={{ 
+                      borderRadius: 3, 
+                      minWidth: '120px',
+                      bgcolor: alpha(theme.palette.error.main, 0.1),
+                      color: 'error.main',
+                      fontWeight: 700,
+                      '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2) }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
   );
 };
 
-export default AdminStands;
+export default AdminStands;

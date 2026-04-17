@@ -1,32 +1,49 @@
 // src/pages/AttendeeStatus.jsx
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { useRole } from '../context/RoleContext';
+import { useSearchParams, Link as RouterLink } from 'react-router-dom';
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Stack,
+  Button,
+  Divider,
+  alpha,
+  useTheme,
+  Stepper,
+  Step,
+  StepLabel
+} from '@mui/material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+const STEPS = ['Received', 'Preparing', 'Ready for Pickup', 'Completed'];
+const STATUS_MAP = {
+  'received': 0,
+  'preparing': 1,
+  'ready': 2,
+  'completed': 3
+};
 
 const AttendeeStatus = () => {
   const [searchParams] = useSearchParams();
-  const { currentRole } = useRole();
+  const theme = useTheme();
 
   const [seat, setSeat] = useState('');
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState('preparing'); // received, preparing, ready, completed
 
-  // Get seat from URL
   useEffect(() => {
     const seatParam = searchParams.get('seat');
-    if (seatParam) {
-      setSeat(seatParam);
-    } else {
-      setSeat('Section-C-Row-12-Seat-45'); // Demo fallback
-    }
-  }, [searchParams]);
+    setSeat(seatParam || 'Section C, Row 12, Seat 45');
 
-  // Simulate a placed order (In real app, this would come from context or backend)
-  useEffect(() => {
     // Mock order data
-    const mockOrder = {
+    setOrder({
       orderId: "VF-78492",
-      seat: seat,
+      seat: seatParam || 'Section C, Row 12, Seat 45',
       items: [
         { name: "Classic Cheeseburger", price: 280, quantity: 1 },
         { name: "Large Pepsi", price: 120, quantity: 2 },
@@ -35,125 +52,145 @@ const AttendeeStatus = () => {
       total: 740,
       estimatedTime: 12,
       placedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-    setOrder(mockOrder);
-  }, [seat]);
+    });
+  }, [searchParams]);
 
-  const getStatusInfo = () => {
-    switch (status) {
-      case 'received':
-        return { text: 'Order Received', color: 'text-blue-400', bg: 'bg-blue-900' };
-      case 'preparing':
-        return { text: 'Preparing Your Order', color: 'text-yellow-400', bg: 'bg-yellow-900' };
-      case 'ready':
-        return { text: 'Ready for Pickup!', color: 'text-green-400', bg: 'bg-green-900' };
-      case 'completed':
-        return { text: 'Order Completed', color: 'text-gray-400', bg: 'bg-gray-800' };
-      default:
-        return { text: 'Preparing', color: 'text-yellow-400', bg: 'bg-yellow-900' };
-    }
-  };
-
-  const statusInfo = getStatusInfo();
+  const activeStep = STATUS_MAP[status];
 
   const simulateStatusChange = () => {
-    if (status === 'received') setStatus('preparing');
-    else if (status === 'preparing') setStatus('ready');
-    else if (status === 'ready') setStatus('completed');
+    const sequence = ['received', 'preparing', 'ready', 'completed'];
+    const currentIndex = sequence.indexOf(status);
+    const nextIndex = (currentIndex + 1) % sequence.length;
+    setStatus(sequence[nextIndex]);
   };
 
-  if (!order) {
-    return <div className="text-center py-20">Loading your order...</div>;
-  }
+  if (!order) return null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold mb-2">Order Status</h1>
-          <p className="text-green-400">Seat: <span className="font-semibold">{seat}</span></p>
-        </div>
+    <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Typography variant="h4" fontWeight={800} gutterBottom>Order Status</Typography>
+        <Typography color="primary" fontWeight={700}>Seat: {seat}</Typography>
+      </Box>
 
-        {/* Order Card */}
-        <div className="bg-zinc-900 rounded-3xl p-8 mb-8">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <p className="text-zinc-400 text-sm">Order ID</p>
-              <p className="text-2xl font-mono font-bold text-green-400">{order.orderId}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-zinc-400 text-sm">Placed at</p>
-              <p className="font-medium">{order.placedTime}</p>
-            </div>
-          </div>
+      {/* Status Visualization */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          mb: 4,
+          borderRadius: 6,
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: alpha(theme.palette.background.paper, 0.6)
+        }}
+      >
+        <Box sx={{ mb: 6 }}>
+          <Stepper activeStep={activeStep} alternativeLabel>
+            {STEPS.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </Box>
 
-          {/* Status Banner */}
-          <div className={`rounded-2xl p-6 mb-8 text-center ${statusInfo.bg}`}>
-            <p className={`text-2xl font-semibold ${statusInfo.color}`}>
-              {statusInfo.text}
-            </p>
-            {status === 'ready' && (
-              <p className="text-green-300 mt-2">Please proceed to Express Pickup Counter</p>
-            )}
-          </div>
+        <Box
+          sx={{
+            p: 3,
+            borderRadius: 4,
+            bgcolor: status === 'ready' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.primary.main, 0.1),
+            textAlign: 'center',
+            mb: 4,
+            border: `1px dashed ${status === 'ready' ? theme.palette.success.main : theme.palette.primary.main}`
+          }}
+        >
+          <Typography
+            variant="h5"
+            fontWeight={800}
+            color={status === 'ready' ? 'success.main' : 'primary.main'}
+            gutterBottom
+          >
+            {STEPS[activeStep]}
+          </Typography>
+          {status === 'ready' && (
+            <Typography variant="body2" color="success.dark" fontWeight={600}>
+              Please proceed to the nearest Express Pickup counter
+            </Typography>
+          )}
+          {status !== 'completed' && status !== 'ready' && (
+            <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
+              <AccessTimeIcon fontSize="small" color="primary" />
+              <Typography variant="body2" color="primary.dark" fontWeight={600}>
+                Est. {order.estimatedTime} mins remaining
+              </Typography>
+            </Stack>
+          )}
+        </Box>
 
-          {/* Order Items */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4">Your Order</h3>
-            <div className="space-y-4">
-              {order.items.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-3 border-b border-zinc-700">
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-zinc-400">Qty: {item.quantity}</p>
-                  </div>
-                  <p className="font-semibold">₹{item.price * item.quantity}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Order Details */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <ReceiptLongIcon color="disabled" />
+            <Typography variant="h6" fontWeight={700}>Order #78492</Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary">Placed at {order.placedTime}</Typography>
+        </Box>
 
-          {/* Total */}
-          <div className="flex justify-between text-xl font-bold border-t border-zinc-700 pt-6">
-            <span>Total Amount</span>
-            <span>₹{order.total}</span>
-          </div>
-        </div>
+        <Stack spacing={2} sx={{ mb: 4 }}>
+          {order.items.map((item, idx) => (
+            <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box>
+                <Typography fontWeight={600}>{item.name}</Typography>
+                <Typography variant="body2" color="text.secondary">Qty: {item.quantity}</Typography>
+              </Box>
+              <Typography fontWeight={700}>₹{item.price * item.quantity}</Typography>
+            </Box>
+          ))}
+        </Stack>
 
-        {/* Estimated Time */}
-        {status !== 'completed' && (
-          <div className="bg-zinc-900 rounded-2xl p-6 mb-8 text-center">
-            <p className="text-zinc-400">Estimated Ready Time</p>
-            <p className="text-5xl font-bold text-green-400 mt-2">
-              {order.estimatedTime} mins
-            </p>
-          </div>
+        <Divider sx={{ mb: 3 }} />
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6" fontWeight={800}>Total Amount</Typography>
+          <Typography variant="h6" fontWeight={900} color="primary">₹{order.total}</Typography>
+        </Box>
+      </Paper>
+
+      {/* Buttons */}
+      <Stack spacing={2}>
+        {status === 'ready' && (
+          <Button
+            fullWidth
+            variant="contained"
+            size="large"
+            startIcon={<CheckCircleIcon />}
+            sx={{ py: 2, borderRadius: 4, fontWeight: 800, bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+          >
+            I've Picked Up My Order
+          </Button>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-4">
-          {status === 'ready' && (
-            <button className="w-full bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-semibold text-lg">
-              I Have Picked Up My Order
-            </button>
-          )}
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={simulateStatusChange}
+          sx={{ borderRadius: 4, py: 1.5, borderColor: theme.palette.divider, color: 'text.secondary', textTransform: 'none' }}
+        >
+          Simulate Status Change (Demo)
+        </Button>
 
-          <button
-            onClick={simulateStatusChange}
-            className="w-full bg-zinc-800 hover:bg-zinc-700 py-4 rounded-2xl font-medium text-zinc-300"
-          >
-            Simulate Status Change (For Demo)
-          </button>
-
-          <Link
-            to="/attendee/order"
-            className="w-full text-center py-4 text-green-400 hover:text-green-300 font-medium"
-          >
-            ← Order More Food
-          </Link>
-        </div>
-      </div>
-    </div>
+        <Button
+          component={RouterLink}
+          to="/attendee/order"
+          variant="text"
+          startIcon={<ArrowBackIcon />}
+          fullWidth
+          sx={{ fontWeight: 700, mt: 2 }}
+        >
+          Order More Food
+        </Button>
+      </Stack>
+    </Container>
   );
 };
 

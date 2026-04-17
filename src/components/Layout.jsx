@@ -10,8 +10,8 @@ export default function Layout({ children }) {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: '#0f172a',  // deep navy — the universal app background
-        color: '#f8fafc',
+        bgcolor: 'background.default',
+        color: 'text.primary',
         display: 'flex',
         flexDirection: 'column',
       }}

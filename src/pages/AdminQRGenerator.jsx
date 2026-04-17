@@ -1,9 +1,26 @@
 // src/pages/AdminQRGenerator.jsx
 import { useState } from 'react';
-import QRCode from 'qrcode';   // Make sure to install: npm install qrcode
+import QRCode from 'qrcode';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Grid, 
+  Paper, 
+  TextField, 
+  Button, 
+  Stack,
+  Card,
+  CardContent,
+  alpha,
+  useTheme
+} from '@mui/material';
+import QrCodeIcon from '@mui/icons-material/QrCode';
+import PrintIcon from '@mui/icons-material/Print';
 import { useRole } from '../context/RoleContext';
 
 const AdminQRGenerator = () => {
+  const theme = useTheme();
   const { currentRole } = useRole();
 
   const [section, setSection] = useState('C');
@@ -27,7 +44,7 @@ const AdminQRGenerator = () => {
             margin: 2,
             color: {
               dark: '#22c55e',   // Green
-              light: '#18181b'
+              light: theme.palette.mode === 'dark' ? '#18181b' : '#ffffff'
             }
           });
 
@@ -52,20 +69,23 @@ const AdminQRGenerator = () => {
         <head>
           <title>Venue-Flow QR Codes</title>
           <style>
-            body { font-family: Arial, sans-serif; background: #111; color: white; padding: 20px; }
-            .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
-            .qr-item { background: #1f2937; padding: 20px; border-radius: 12px; text-align: center; }
-            .qr-item img { margin: 15px 0; }
+            body { font-family: 'Inter', sans-serif; background: #fff; color: #000; padding: 40px; }
+            .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 40px; }
+            .qr-item { border: 2px solid #eee; padding: 20px; border-radius: 16px; text-align: center; }
+            .qr-item h3 { margin: 0 0 10px 0; font-size: 16px; }
+            .qr-item img { width: 100%; border-radius: 8px; }
+            .qr-item p { font-size: 10px; color: #666; word-break: break-all; margin-top: 10px; }
           </style>
         </head>
         <body>
-          <h1 style="text-align:center; color:#22c55e;">Venue-Flow - Seat QR Codes</h1>
+          <h1 style="text-align:center; margin-bottom: 40px;">Venue-Flow Seat QR Codes</h1>
           <div class="qr-grid">
             ${generatedQRs.map(qr => `
               <div class="qr-item">
                 <h3>${qr.seat}</h3>
                 <img src="${qr.qrCode}" alt="${qr.seat}" />
-                <p style="font-size:14px; color:#888;">Scan to order food</p>
+                <p>Scan to Order Food</p>
+                <p style="font-size: 8px;">${qr.url}</p>
               </div>
             `).join('')}
           </div>
@@ -77,107 +97,161 @@ const AdminQRGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold mb-2">QR Code Generator</h1>
-          <p className="text-zinc-400">Generate QR codes for seats to place at each location</p>
-        </div>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h4" fontWeight={800} gutterBottom>QR Code Generator</Typography>
+        <Typography color="text.secondary">Generate and print QR codes for specific seats in the venue</Typography>
+      </Box>
 
-        {/* Generator Form */}
-        <div className="bg-zinc-900 rounded-3xl p-8 mb-10">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Section</label>
-              <input
-                type="text"
-                value={section}
-                onChange={(e) => setSection(e.target.value.toUpperCase())}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white"
-              />
-            </div>
+      {/* Generator Form */}
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: 4, 
+          mb: 8, 
+          borderRadius: 6, 
+          border: `1px solid ${theme.palette.divider}`,
+          bgcolor: alpha(theme.palette.background.paper, 0.6)
+        }}
+      >
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+          <Box sx={{ p: 1, bgcolor: 'primary.main', borderRadius: 2, color: 'primary.contrastText' }}>
+            <QrCodeIcon />
+          </Box>
+          <Typography variant="h5" fontWeight={700}>Generation Settings</Typography>
+        </Stack>
 
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Row Start</label>
-              <input
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              label="Section"
+              value={section}
+              onChange={(e) => setSection(e.target.value.toUpperCase())}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              label="Row Start"
+              type="number"
+              value={rowStart}
+              onChange={(e) => setRowStart(Number(e.target.value))}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              label="Row End"
+              type="number"
+              value={rowEnd}
+              onChange={(e) => setRowEnd(Number(e.target.value))}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                fullWidth
+                label="Seat Start"
                 type="number"
-                value={rowStart}
-                onChange={(e) => setRowStart(Number(e.target.value))}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white"
+                value={seatStart}
+                onChange={(e) => setSeatStart(Number(e.target.value))}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Row End</label>
-              <input
+              <TextField
+                fullWidth
+                label="Seat End"
                 type="number"
-                value={rowEnd}
-                onChange={(e) => setRowEnd(Number(e.target.value))}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white"
+                value={seatEnd}
+                onChange={(e) => setSeatEnd(Number(e.target.value))}
               />
-            </div>
+            </Box>
+          </Grid>
+        </Grid>
 
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Seats per Row</label>
-              <div className="flex gap-3">
-                <input
-                  type="number"
-                  value={seatStart}
-                  onChange={(e) => setSeatStart(Number(e.target.value))}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white"
-                  placeholder="From"
-                />
-                <input
-                  type="number"
-                  value={seatEnd}
-                  onChange={(e) => setSeatEnd(Number(e.target.value))}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white"
-                  placeholder="To"
-                />
-              </div>
-            </div>
-          </div>
+        <Button 
+          fullWidth
+          variant="contained"
+          size="large"
+          startIcon={<QrCodeIcon />}
+          onClick={generateQRCodes}
+          sx={{ mt: 4, borderRadius: 3, py: 1.5, fontWeight: 700 }}
+        >
+          Generate QR Codes
+        </Button>
+      </Paper>
 
-          <button
-            onClick={generateQRCodes}
-            className="mt-8 w-full bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-semibold text-lg transition-colors"
-          >
-            Generate QR Codes
-          </button>
-        </div>
+      {/* Results */}
+      {generatedQRs.length > 0 && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+            <Typography variant="h5" fontWeight={800}>
+              Generated QR Codes ({generatedQRs.length})
+            </Typography>
+            <Button 
+              variant="contained" 
+              color="secondary" 
+              startIcon={<PrintIcon />}
+              onClick={printQRCodes}
+              sx={{ borderRadius: 3, fontWeight: 700 }}
+            >
+              Print All
+            </Button>
+          </Box>
 
-        {/* Generated QR Codes */}
-        {generatedQRs.length > 0 && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">
-                Generated QR Codes ({generatedQRs.length})
-              </h2>
-              <button
-                onClick={printQRCodes}
-                className="bg-white text-black px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-              >
-                🖨️ Print All QR Codes
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {generatedQRs.map((qr, index) => (
-                <div key={index} className="bg-zinc-900 rounded-2xl p-6 text-center">
-                  <h3 className="font-mono font-bold text-green-400 mb-4">{qr.seat}</h3>
-                  <img 
-                    src={qr.qrCode} 
-                    alt={qr.seat}
-                    className="mx-auto mb-4 rounded-xl shadow-2xl"
-                  />
-                  <p className="text-xs text-zinc-500 break-all">{qr.url}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+          <Grid container spacing={3}>
+            {generatedQRs.map((qr, index) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                <Card 
+                  elevation={0}
+                  sx={{ 
+                    borderRadius: 5, 
+                    border: `1px solid ${theme.palette.divider}`,
+                    textAlign: 'center',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.1)}`
+                    }
+                  }}
+                >
+                  <CardContent sx={{ p: 3 }}>
+                    <Typography variant="subtitle2" fontWeight={800} color="primary" sx={{ mb: 2, fontFamily: 'monospace' }}>
+                      {qr.seat}
+                    </Typography>
+                    <Box 
+                      component="img" 
+                      src={qr.qrCode} 
+                      alt={qr.seat} 
+                      sx={{ 
+                        width: '100%', 
+                        maxWidth: 200, 
+                        borderRadius: 3, 
+                        bgcolor: 'white', 
+                        p: 1.5, 
+                        mb: 2,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                      }} 
+                    />
+                    <Typography 
+                      variant="caption" 
+                      color="text.disabled" 
+                      sx={{ 
+                        display: 'block', 
+                        wordBreak: 'break-all', 
+                        lineHeight: 1.2,
+                        fontSize: '0.65rem' 
+                      }}
+                    >
+                      {qr.url}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+    </Container>
   );
 };
 
